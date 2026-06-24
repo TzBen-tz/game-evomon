@@ -1,124 +1,172 @@
-local plr = game.Players.LocalPlayer
-local PlayerGui = plr:WaitForChild("PlayerGui", 5) or plr.PlayerGui
+local Players = game:GetService("Players")
+local UIS = game:GetService("UserInputService")
 
--- Membersihkan UI lama jika script di-execute ulang
-if PlayerGui:FindFirstChild("STARGOD_AUTO_WALK") then
-    PlayerGui["STARGOD_AUTO_WALK"]:Destroy()
+local plr = Players.LocalPlayer
+local PlayerGui = plr:WaitForChild("PlayerGui")
+
+local TARGET_NAME = "pet0_1"
+
+-- Hapus UI lama
+if PlayerGui:FindFirstChild("MonsterWalkerUI") then
+	PlayerGui.MonsterWalkerUI:Destroy()
 end
 
--- ==========================================
--- UI INTERFACE MINIMALIS
--- ==========================================
+-- ScreenGui
 local ScreenGui = Instance.new("ScreenGui")
-ScreenGui.Name = "STARGOD_AUTO_WALK"
-ScreenGui.Parent = PlayerGui
+ScreenGui.Name = "MonsterWalkerUI"
 ScreenGui.ResetOnSpawn = false
+ScreenGui.Parent = PlayerGui
 
-local MainFrame = Instance.new("Frame")
-MainFrame.Parent = ScreenGui
-MainFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 28)
-MainFrame.Position = UDim2.new(0.05, 0, 0.2, 0)
-MainFrame.Size = UDim2.new(0, 200, 0, 110)
-MainFrame.Active = true
-MainFrame.Draggable = true
-Instance.new("UICorner", MainFrame).CornerRadius = UDim.new(0, 8)
+-- Tombol Popup
+local PopupBtn = Instance.new("TextButton")
+PopupBtn.Parent = ScreenGui
+PopupBtn.Size = UDim2.new(0,50,0,50)
+PopupBtn.Position = UDim2.new(0,10,0.5,-25)
+PopupBtn.Text = "📱"
+PopupBtn.TextScaled = true
+PopupBtn.BackgroundColor3 = Color3.fromRGB(0,170,255)
+PopupBtn.TextColor3 = Color3.new(1,1,1)
 
+local PopupCorner = Instance.new("UICorner")
+PopupCorner.CornerRadius = UDim.new(1,0)
+PopupCorner.Parent = PopupBtn
+
+-- Frame Utama
+local Frame = Instance.new("Frame")
+Frame.Parent = ScreenGui
+Frame.Size = UDim2.new(0,220,0,140) -- UPDATED
+Frame.Position = UDim2.new(0.5,-110,0.5,-60)
+Frame.BackgroundColor3 = Color3.fromRGB(25,25,35)
+
+local FrameCorner = Instance.new("UICorner")
+FrameCorner.CornerRadius = UDim.new(0,12)
+FrameCorner.Parent = Frame
+
+local Stroke = Instance.new("UIStroke")
+Stroke.Parent = Frame
+Stroke.Color = Color3.fromRGB(0,170,255)
+Stroke.Thickness = 2
+
+-- Judul
 local Title = Instance.new("TextLabel")
-Title.Parent = MainFrame; Title.BackgroundTransparency = 1; Title.Position = UDim2.new(0, 0, 0, 8); Title.Size = UDim2.new(1, 0, 0, 20)
-Title.Font = Enum.Font.GothamBold; Title.Text = "★ AUTO WALK MONSTER ★"; Title.TextColor3 = Color3.fromRGB(255, 255, 255); Title.TextSize = 10
+Title.Parent = Frame
+Title.Size = UDim2.new(1,0,0,30)
+Title.BackgroundTransparency = 1
+Title.Text = "Monster Walker"
+Title.TextColor3 = Color3.new(1,1,1)
+Title.Font = Enum.Font.GothamBold
+Title.TextSize = 18
 
-local ToggleBtn = Instance.new("TextButton")
-ToggleBtn.Parent = MainFrame; ToggleBtn.Position = UDim2.new(0, 15, 0, 40); ToggleBtn.Size = UDim2.new(1, -30, 0, 35)
-ToggleBtn.BackgroundColor3 = Color3.fromRGB(40, 42, 58); ToggleBtn.Font = Enum.Font.GothamSemibold; ToggleBtn.Text = "AUTO FIGHT : OFF"; ToggleBtn.TextColor3 = Color3.fromRGB(200, 200, 200); ToggleBtn.TextSize = 10
-Instance.new("UICorner", ToggleBtn).CornerRadius = UDim.new(0, 5)
+-- CREDIT (ADDED)
+local Credit = Instance.new("TextLabel")
+Credit.Parent = Frame
+Credit.Size = UDim2.new(1,0,0,15)
+Credit.Position = UDim2.new(0,0,0,22)
+Credit.BackgroundTransparency = 1
+Credit.Text = "⚡ Script By Benny Setyawan ⚡"
+Credit.TextColor3 = Color3.fromRGB(0,255,255)
+Credit.Font = Enum.Font.GothamBold
+Credit.TextSize = 10
 
-local StatusLabel = Instance.new("TextLabel")
-StatusLabel.Parent = MainFrame; StatusLabel.BackgroundTransparency = 1; StatusLabel.Position = UDim2.new(0, 0, 0, 80); StatusLabel.Size = UDim2.new(1, 0, 0, 20)
-StatusLabel.Font = Enum.Font.Gotham; StatusLabel.Text = "Status: Idle"; StatusLabel.TextColor3 = Color3.fromRGB(160, 160, 175); StatusLabel.TextSize = 9
+-- Input Nama Monster
+local TextBox = Instance.new("TextBox")
+TextBox.Parent = Frame
+TextBox.Size = UDim2.new(1,-20,0,35)
+TextBox.Position = UDim2.new(0,10,0,55) -- UPDATED
+TextBox.Text = TARGET_NAME
+TextBox.PlaceholderText = "Contoh: pet0_50"
+TextBox.BackgroundColor3 = Color3.fromRGB(35,35,50)
+TextBox.TextColor3 = Color3.new(1,1,1)
+TextBox.Font = Enum.Font.Gotham
+TextBox.TextSize = 14
 
--- ==========================================
--- ENGINE LOGIC
--- ==========================================
-local isAutoWalkOn = false
+local TextCorner = Instance.new("UICorner")
+TextCorner.CornerRadius = UDim.new(0,8)
+TextCorner.Parent = TextBox
 
-ToggleBtn.MouseButton1Click:Connect(function()
-    isAutoWalkOn = not isAutoWalkOn
-    if isAutoWalkOn then
-        ToggleBtn.Text = "AUTO FIGHT : ON"
-        ToggleBtn.BackgroundColor3 = Color3.fromRGB(200, 50, 50)
-        ToggleBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-        StatusLabel.Text = "Status: Mencari Target..."
-    else
-        ToggleBtn.Text = "AUTO FIGHT : OFF"
-        ToggleBtn.BackgroundColor3 = Color3.fromRGB(40, 42, 58)
-        ToggleBtn.TextColor3 = Color3.fromRGB(200, 200, 200)
-        StatusLabel.Text = "Status: Idle"
-        
-        -- Hentikan pergerakan karakter saat dimatikan
-        local char = plr.Character
-        local humanoid = char and char:FindFirstChildOfClass("Humanoid")
-        if humanoid then
-            humanoid:MoveTo(char.HumanoidRootPart.Position)
-        end
-    end
+-- Tombol Set Target
+local Button = Instance.new("TextButton")
+Button.Parent = Frame
+Button.Size = UDim2.new(1,-20,0,30)
+Button.Position = UDim2.new(0,10,0,95) -- UPDATED
+Button.Text = "Set Target"
+Button.BackgroundColor3 = Color3.fromRGB(0,170,255)
+Button.TextColor3 = Color3.new(1,1,1)
+Button.Font = Enum.Font.GothamBold
+Button.TextSize = 14
+
+local BtnCorner = Instance.new("UICorner")
+BtnCorner.CornerRadius = UDim.new(0,8)
+BtnCorner.Parent = Button
+
+Button.MouseButton1Click:Connect(function()
+	TARGET_NAME = TextBox.Text
+	Button.Text = "Target: "..TARGET_NAME
+	task.wait(1)
+	Button.Text = "Set Target"
 end)
 
-local function getNearestMonster()
-    local char = plr.Character
-    local hrp = char and char:FindFirstChild("HumanoidRootPart")
-    if not hrp then return nil end
+-- Show / Hide UI
+PopupBtn.MouseButton1Click:Connect(function()
+	Frame.Visible = not Frame.Visible
+end)
 
-    local closestMonster = nil
-    local shortestDistance = 500 -- Radius jangkauan mata mencari monster
+-- Drag UI
+local dragging = false
+local dragInput
+local dragStart
+local startPos
 
-    for _, obj in pairs(workspace:GetDescendants()) do
-        if obj:IsA("Model") and obj ~= char and not game.Players:GetPlayerFromCharacter(obj) then
-            local root = obj:FindFirstChild("HumanoidRootPart") or obj.PrimaryPart
-            local hum = obj:FindFirstChildOfClass("Humanoid")
-            
-            if root and hum and hum.Health > 0 then
-                local dist = (root.Position - hrp.Position).Magnitude
-                if dist < shortestDistance then
-                    shortestDistance = dist
-                    closestMonster = root
-                end
-            end
-        end
-    end
-    return closestMonster
-end
+Frame.InputBegan:Connect(function(input)
+	if input.UserInputType == Enum.UserInputType.MouseButton1
+	or input.UserInputType == Enum.UserInputType.Touch then
+		dragging = true
+		dragStart = input.Position
+		startPos = Frame.Position
 
--- ==========================================
--- BACKGROUND WORKER (PURE WALK TRACKING)
--- ==========================================
+		input.Changed:Connect(function()
+			if input.UserInputState == Enum.UserInputState.End then
+				dragging = false
+			end
+		end)
+	end
+end)
+
+Frame.InputChanged:Connect(function(input)
+	if input.UserInputType == Enum.UserInputType.MouseMovement
+	or input.UserInputType == Enum.UserInputType.Touch then
+		dragInput = input
+	end
+end)
+
+UIS.InputChanged:Connect(function(input)
+	if input == dragInput and dragging then
+		local delta = input.Position - dragStart
+		Frame.Position = UDim2.new(
+			startPos.X.Scale,
+			startPos.X.Offset + delta.X,
+			startPos.Y.Scale,
+			startPos.Y.Offset + delta.Y
+		)
+	end
+end)
+
+-- Auto Walk
 task.spawn(function()
-    while true do
-        task.wait(0.2) -- Update arah jalan setiap 0.2 detik agar bisa nge-track monster yang gerak
-        if isAutoWalkOn then
-            pcall(function()
-                local char = plr.Character
-                local hrp = char and char:FindFirstChild("HumanoidRootPart")
-                local humanoid = char and char:FindFirstChildOfClass("Humanoid")
-                
-                if hrp and humanoid then
-                    -- Cek apakah karakter sedang tidak di-freeze (berarti sedang di map biasa)
-                    if not hrp.Anchored then
-                        local target = getNearestMonster()
-                        
-                        if target then
-                            StatusLabel.Text = "Status: Mengejar " .. target.Parent.Name .. "..."
-                            
-                            -- Murni jalan kaki mengejar target (tanpa teleport)
-                            humanoid:MoveTo(target.Position)
-                        else
-                            StatusLabel.Text = "Status: Menunggu Monster Spawn..."
-                        end
-                    else
-                        -- Jika karakter di-freeze, berarti pertarungan sedang berlangsung
-                        StatusLabel.Text = "Status: Dalam Pertarungan..."
-                    end
-                end
-            end)
-        end
-    end
+	while task.wait(0.2) do
+		local char = plr.Character
+		local hum = char and char:FindFirstChild("Humanoid")
+
+		local target = workspace:FindFirstChild(TARGET_NAME, true)
+
+		if hum and target then
+			local hrp = target:FindFirstChild("HumanoidRootPart")
+
+			if hrp then
+				hum:MoveTo(hrp.Position)
+			elseif target:IsA("BasePart") then
+				hum:MoveTo(target.Position)
+			end
+		end
+	end
 end)
