@@ -4,180 +4,107 @@ local UIS = game:GetService("UserInputService")
 local plr = Players.LocalPlayer
 local PlayerGui = plr:WaitForChild("PlayerGui")
 
-local TARGET_NAME = "pet0_1"
-
--- Hapus UI lama
 if PlayerGui:FindFirstChild("MonsterWalkerUI") then
 	PlayerGui.MonsterWalkerUI:Destroy()
 end
 
--- ScreenGui
+local AutoFarm = false
+
+-- GUI
 local ScreenGui = Instance.new("ScreenGui")
 ScreenGui.Name = "MonsterWalkerUI"
 ScreenGui.ResetOnSpawn = false
 ScreenGui.Parent = PlayerGui
 
--- Tombol Popup
-local PopupBtn = Instance.new("TextButton")
-PopupBtn.Parent = ScreenGui
-PopupBtn.Size = UDim2.new(0,50,0,50)
-PopupBtn.Position = UDim2.new(0,10,0.5,-25)
-PopupBtn.Text = "📱"
-PopupBtn.TextScaled = true
-PopupBtn.BackgroundColor3 = Color3.fromRGB(0,170,255)
-PopupBtn.TextColor3 = Color3.new(1,1,1)
-
-local PopupCorner = Instance.new("UICorner")
-PopupCorner.CornerRadius = UDim.new(1,0)
-PopupCorner.Parent = PopupBtn
-
--- Frame Utama
 local Frame = Instance.new("Frame")
 Frame.Parent = ScreenGui
-Frame.Size = UDim2.new(0,220,0,140) -- UPDATED
+Frame.Size = UDim2.new(0,220,0,120)
 Frame.Position = UDim2.new(0.5,-110,0.5,-60)
 Frame.BackgroundColor3 = Color3.fromRGB(25,25,35)
+Instance.new("UICorner", Frame).CornerRadius = UDim.new(0,12)
 
-local FrameCorner = Instance.new("UICorner")
-FrameCorner.CornerRadius = UDim.new(0,12)
-FrameCorner.Parent = Frame
-
-local Stroke = Instance.new("UIStroke")
-Stroke.Parent = Frame
-Stroke.Color = Color3.fromRGB(0,170,255)
-Stroke.Thickness = 2
-
--- Judul
 local Title = Instance.new("TextLabel")
 Title.Parent = Frame
 Title.Size = UDim2.new(1,0,0,30)
 Title.BackgroundTransparency = 1
-Title.Text = "Monster Walker"
+Title.Text = "EVOMON AUTO FARM"
 Title.TextColor3 = Color3.new(1,1,1)
 Title.Font = Enum.Font.GothamBold
-Title.TextSize = 18
+Title.TextSize = 16
 
--- CREDIT (ADDED)
-local Credit = Instance.new("TextLabel")
-Credit.Parent = Frame
-Credit.Size = UDim2.new(1,0,0,15)
-Credit.Position = UDim2.new(0,0,0,22)
-Credit.BackgroundTransparency = 1
-Credit.Text = "⚡ Script By Benny Setyawan ⚡"
-Credit.TextColor3 = Color3.fromRGB(0,255,255)
-Credit.Font = Enum.Font.GothamBold
-Credit.TextSize = 10
+local Toggle = Instance.new("TextButton")
+Toggle.Parent = Frame
+Toggle.Size = UDim2.new(1,-20,0,40)
+Toggle.Position = UDim2.new(0,10,0,45)
+Toggle.Text = "AUTO FARM : OFF"
+Toggle.BackgroundColor3 = Color3.fromRGB(60,60,60)
+Toggle.TextColor3 = Color3.new(1,1,1)
+Instance.new("UICorner", Toggle).CornerRadius = UDim.new(0,8)
 
--- Input Nama Monster
-local TextBox = Instance.new("TextBox")
-TextBox.Parent = Frame
-TextBox.Size = UDim2.new(1,-20,0,35)
-TextBox.Position = UDim2.new(0,10,0,55) -- UPDATED
-TextBox.Text = TARGET_NAME
-TextBox.PlaceholderText = "Contoh: pet0_50"
-TextBox.BackgroundColor3 = Color3.fromRGB(35,35,50)
-TextBox.TextColor3 = Color3.new(1,1,1)
-TextBox.Font = Enum.Font.Gotham
-TextBox.TextSize = 14
+local Status = Instance.new("TextLabel")
+Status.Parent = Frame
+Status.Size = UDim2.new(1,0,0,20)
+Status.Position = UDim2.new(0,0,1,-20)
+Status.BackgroundTransparency = 1
+Status.Text = "Status: Idle"
+Status.TextColor3 = Color3.fromRGB(200,200,200)
+Status.Font = Enum.Font.Gotham
+Status.TextSize = 10
 
-local TextCorner = Instance.new("UICorner")
-TextCorner.CornerRadius = UDim.new(0,8)
-TextCorner.Parent = TextBox
+Toggle.MouseButton1Click:Connect(function()
+	AutoFarm = not AutoFarm
 
--- Tombol Set Target
-local Button = Instance.new("TextButton")
-Button.Parent = Frame
-Button.Size = UDim2.new(1,-20,0,30)
-Button.Position = UDim2.new(0,10,0,95) -- UPDATED
-Button.Text = "Set Target"
-Button.BackgroundColor3 = Color3.fromRGB(0,170,255)
-Button.TextColor3 = Color3.new(1,1,1)
-Button.Font = Enum.Font.GothamBold
-Button.TextSize = 14
-
-local BtnCorner = Instance.new("UICorner")
-BtnCorner.CornerRadius = UDim.new(0,8)
-BtnCorner.Parent = Button
-
-Button.MouseButton1Click:Connect(function()
-	TARGET_NAME = TextBox.Text
-	Button.Text = "Target: "..TARGET_NAME
-	task.wait(1)
-	Button.Text = "Set Target"
+	if AutoFarm then
+		Toggle.Text = "AUTO FARM : ON"
+		Toggle.BackgroundColor3 = Color3.fromRGB(0,170,0)
+	else
+		Toggle.Text = "AUTO FARM : OFF"
+		Toggle.BackgroundColor3 = Color3.fromRGB(60,60,60)
+		Status.Text = "Status: Idle"
+	end
 end)
 
--- Show / Hide UI
-PopupBtn.MouseButton1Click:Connect(function()
-	Frame.Visible = not Frame.Visible
-end)
+local function getNearestPet()
+	local char = plr.Character
+	local hrp = char and char:FindFirstChild("HumanoidRootPart")
+	if not hrp then return nil end
 
--- Drag UI
-local dragging = false
-local dragInput
-local dragStart
-local startPos
+	local closest
+	local dist = math.huge
 
-Frame.InputBegan:Connect(function(input)
-	if input.UserInputType == Enum.UserInputType.MouseButton1
-	or input.UserInputType == Enum.UserInputType.Touch then
-		dragging = true
-		dragStart = input.Position
-		startPos = Frame.Position
+	for _, obj in pairs(workspace:GetDescendants()) do
+		if obj:IsA("Model") and string.find(obj.Name:lower(), "pet0_") then
+			local root = obj:FindFirstChild("HumanoidRootPart") or obj.PrimaryPart
+			local hum = obj:FindFirstChildOfClass("Humanoid")
 
-		input.Changed:Connect(function()
-			if input.UserInputState == Enum.UserInputState.End then
-				dragging = false
+			if root and hum and hum.Health > 0 then
+				local d = (root.Position - hrp.Position).Magnitude
+				if d < dist then
+					dist = d
+					closest = root
+				end
 			end
-		end)
+		end
 	end
-end)
 
-Frame.InputChanged:Connect(function(input)
-	if input.UserInputType == Enum.UserInputType.MouseMovement
-	or input.UserInputType == Enum.UserInputType.Touch then
-		dragInput = input
-	end
-end)
-
-UIS.InputChanged:Connect(function(input)
-	if input == dragInput and dragging then
-		local delta = input.Position - dragStart
-		Frame.Position = UDim2.new(
-			startPos.X.Scale,
-			startPos.X.Offset + delta.X,
-			startPos.Y.Scale,
-			startPos.Y.Offset + delta.Y
-		)
-	end
-end)
-
--- Auto Walk
-
-local MAX_DISTANCE = 50 -- ubah sesuai kebutuhan
+	return closest
+end
 
 task.spawn(function()
-	while task.wait(0.2) do
+	while task.wait(0.25) do
+		if not AutoFarm then continue end
+
 		local char = plr.Character
-		local hum = char and char:FindFirstChild("Humanoid")
-		local root = char and char:FindFirstChild("HumanoidRootPart")
+		local hum = char and char:FindFirstChildOfClass("Humanoid")
 
-		local target = workspace:FindFirstChild(TARGET_NAME, true)
+		if hum then
+			local target = getNearestPet()
 
-		if hum and root and target then
-			local hrp = target:FindFirstChild("HumanoidRootPart")
-
-			if hrp then
-				local distance = (root.Position - hrp.Position).Magnitude
-
-				if distance <= MAX_DISTANCE then
-					hum:MoveTo(hrp.Position)
-				end
-			elseif target:IsA("BasePart") then
-				local distance = (root.Position - target.Position).Magnitude
-
-				if distance <= MAX_DISTANCE then
-					hum:MoveTo(target.Position)
-				end
+			if target then
+				Status.Text = "Status: Farming Pet"
+				hum:MoveTo(target.Position)
+			else
+				Status.Text = "Status: Tidak ada pet"
 			end
 		end
 	end
