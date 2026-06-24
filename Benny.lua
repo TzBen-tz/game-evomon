@@ -153,7 +153,7 @@ end)
 
 -- Auto Walk
 
-local MAX_DISTANCE = 30 -- ubah sesuai kebutuhan
+local MAX_DISTANCE = 50 -- ubah sesuai kebutuhan
 
 task.spawn(function()
 	while task.wait(0.2) do
