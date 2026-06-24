@@ -152,20 +152,32 @@ UIS.InputChanged:Connect(function(input)
 end)
 
 -- Auto Walk
+
+local MAX_DISTANCE = 30 -- ubah sesuai kebutuhan
+
 task.spawn(function()
 	while task.wait(0.2) do
 		local char = plr.Character
 		local hum = char and char:FindFirstChild("Humanoid")
+		local root = char and char:FindFirstChild("HumanoidRootPart")
 
 		local target = workspace:FindFirstChild(TARGET_NAME, true)
 
-		if hum and target then
+		if hum and root and target then
 			local hrp = target:FindFirstChild("HumanoidRootPart")
 
 			if hrp then
-				hum:MoveTo(hrp.Position)
+				local distance = (root.Position - hrp.Position).Magnitude
+
+				if distance <= MAX_DISTANCE then
+					hum:MoveTo(hrp.Position)
+				end
 			elseif target:IsA("BasePart") then
-				hum:MoveTo(target.Position)
+				local distance = (root.Position - target.Position).Magnitude
+
+				if distance <= MAX_DISTANCE then
+					hum:MoveTo(target.Position)
+				end
 			end
 		end
 	end
